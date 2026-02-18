@@ -2,6 +2,7 @@ package com.smartcaf.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,13 +30,15 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/api/**", "/h2-console/**").permitAll()
+                // IMPORTANT: laisse passer les preflights CORS
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/products/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             );
-        
+
         // Pour H2 Console
         http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
-        
+
         return http.build();
     }
 

@@ -19,6 +19,8 @@ export function Header() {
             Panier
             {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
           </Link>
+          <Link to="/login" className="nav-link">Connexion</Link>
+          <Link to="/register" className="nav-link">Inscription</Link>
         </nav>
       </div>
     </header>
