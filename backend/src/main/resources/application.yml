@@ -1,12 +1,12 @@
 spring:
   application:
-    name: smartcaf-backend
+    name: smartcafé
 
   datasource:
     url: jdbc:mysql://localhost:3306/smartcafé?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password:
+    username: 
+    password: 
 
   jpa:
     hibernate:
@@ -18,7 +18,7 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
   
 server:
-  port: 8081
+  port: 8082
   
 cors:
   allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:5173
