@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import './Register.css';
 
+import { useUserStore } from '../store/userStore';
+
 const Register = ({ onRegister }) => {
+    const setUser = useUserStore((state) => state.setUser);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,6 +35,7 @@ const Register = ({ onRegister }) => {
 
       if (response.ok) {
         setSuccess(data.message || 'Compte créé avec succès !');
+        setUser(data.user);
         onRegister && onRegister(data);
       } else {
         setError(data.message || 'Erreur lors de l’inscription');

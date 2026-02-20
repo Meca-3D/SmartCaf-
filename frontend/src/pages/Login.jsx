@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import './Login.css';
 
+import { useUserStore } from '../store/userStore';
+
 const Login = ({ onLogin }) => {
+    const setUser = useUserStore((state) => state.setUser);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -31,6 +34,7 @@ const Login = ({ onLogin }) => {
       }
 
       if (response.ok) {
+        setUser(data.user);
         onLogin && onLogin(data);
       } else {
         // On donne un message utile, sans bloquer si message absent
