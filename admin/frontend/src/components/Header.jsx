@@ -26,6 +26,9 @@ export function Header() {
           {user ? (
             <>
               <span className="nav-user">Connecté : {user.firstName} {user.lastName}</span>
+              {user.role === 'ADMIN' && (
+                <Link to="/admin" className="nav-link nav-link--admin">⚙ Admin</Link>
+              )}
               <button className="nav-link" onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>Déconnexion</button>
             </>
           ) : (

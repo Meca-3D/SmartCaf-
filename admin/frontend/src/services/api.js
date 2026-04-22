@@ -44,4 +44,61 @@ export const getProductsByCategory = async (category) => {
   return response.data;
 };
 
-export default api;
+// ===== ADMIN - Dashboard =====
+export const getDashboardStats = async () => {
+  const response = await api.get('/admin/dashboard');
+  return response.data;
+};
+
+// ===== ADMIN - Products =====
+export const getAdminProducts = async () => {
+  const response = await api.get('/admin/products');
+  return response.data;
+};
+
+export const toggleProductStatus = async (id) => {
+  const response = await api.put(`/admin/products/${id}/toggle-status`);
+  return response.data;
+};
+
+// ===== ADMIN - Orders =====
+export const getAdminOrders = async () => {
+  const response = await api.get('/admin/orders');
+  return response.data;
+};
+
+export const getAdminOrderById = async (id) => {
+  const response = await api.get(`/admin/orders/${id}`);
+  return response.data;
+};
+
+export const updateOrderStatus = async (id, status) => {
+  const response = await api.put(`/admin/orders/${id}/status`, { status });
+  return response.data;
+};
+
+// ===== ADMIN - Sales =====
+export const getSalesByProduct = async () => {
+  const response = await api.get('/admin/sales/by-product');
+  return response.data;
+};
+
+// ===== ADMIN - Categories =====
+export const getAdminCategories = async () => {
+  const response = await api.get('/admin/categories');
+  return response.data;
+};
+
+export const createAdminCategory = async (category) => {
+  const response = await api.post('/admin/categories', category);
+  return response.data;
+};
+
+export const updateAdminCategory = async (id, category) => {
+  const response = await api.put(`/admin/categories/${id}`, category);
+  return response.data;
+};
+
+export const deleteAdminCategory = async (id) => {
+  await api.delete(`/admin/categories/${id}`);
+};

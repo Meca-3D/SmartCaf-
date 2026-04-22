@@ -60,3 +60,23 @@
   font-size: 0.75rem;
   font-weight: bold;
 }
+
+.nav-link--admin {
+  background-color: #3b82f6;
+  color: #ffffff !important;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease !important;
+}
+
+.nav-link--admin:hover {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.nav-user {
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
