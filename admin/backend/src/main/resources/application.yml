@@ -3,10 +3,10 @@ spring:
     name: smartcafé
 
   datasource:
-    url: jdbc:mysql://localhost:3307/smartcafé?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
+    url: jdbc:mysql://localhost:3306/smartcafé?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: 
-    password: 
+    username: leo
+    password: leo
 
   jpa:
     hibernate:
