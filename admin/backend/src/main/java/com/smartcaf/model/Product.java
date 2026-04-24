@@ -46,6 +46,10 @@ public class Product {
     @Column(nullable = false)
     private String category;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    private Category categoryObject;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
