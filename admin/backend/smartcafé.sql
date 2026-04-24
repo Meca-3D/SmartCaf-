@@ -393,6 +393,14 @@ ALTER TABLE `products`
 --
 ALTER TABLE `product_options`
   ADD CONSTRAINT `product_options_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
+
+--
+-- Données pour la table `users`
+--
+
+INSERT INTO `users` (`first_name`, `last_name`, `email`, `password`, `role`, `created_at`)
+VALUES ('Admin', 'SmartCafe', 'admin@smartcafe.fr', '$2a$10$HPzV6/f1uHfWilyth7e6MeZnIte.1rp9vi1sG5eDpcfd1tFE57eDS', 'ADMIN', NOW());
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
