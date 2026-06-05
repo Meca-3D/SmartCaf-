@@ -102,3 +102,25 @@ export const updateAdminCategory = async (id, category) => {
 export const deleteAdminCategory = async (id) => {
   await api.delete(`/admin/categories/${id}`);
 };
+
+// ===== ADMIN - Batch delete products =====
+export const deleteProductsBatch = async (ids) => {
+  const response = await api.delete('/admin/products/batch', { data: ids });
+  return response.data;
+};
+
+// ===== ADMIN - Users =====
+export const getAdminUsers = async () => {
+  const response = await api.get('/admin/users');
+  return response.data;
+};
+
+export const updateUserRole = async (id, role) => {
+  const response = await api.put(`/admin/users/${id}/role`, { role });
+  return response.data;
+};
+
+export const deleteAdminUser = async (id) => {
+  await api.delete(`/admin/users/${id}`);
+};
+

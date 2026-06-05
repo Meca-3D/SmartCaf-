@@ -4,7 +4,9 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  deleteProductsBatch,
   toggleProductStatus,
+  getAdminCategories,
 } from '../../services/api';
 import './AdminProducts.css';
 
@@ -18,25 +20,36 @@ const EMPTY_FORM = {
   isActive: true,
 };
 
+const CONFIRM_WORD = 'SUPPRIMER';
+
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+
+  // Selection
+  const [selected, setSelected] = useState(new Set());
+
+  // Delete confirmation modal (single or batch)
+  const [deleteTarget, setDeleteTarget] = useState(null); // { type: 'single'|'batch', id?: number }
+  const [confirmCode, setConfirmCode] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   const load = async () => {
     setLoading(true);
     try {
-      const data = await getAdminProducts();
-      setProducts(data);
+      const [prods, cats] = await Promise.all([getAdminProducts(), getAdminCategories()]);
+      setProducts(prods);
+      setCategories(cats);
     } catch {
-      setError('Impossible de charger les produits.');
+      setError('Impossible de charger les données.');
     } finally {
       setLoading(false);
     }
@@ -98,16 +111,6 @@ const AdminProducts = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await deleteProduct(id);
-      setDeleteConfirm(null);
-      load();
-    } catch {
-      setError('Erreur lors de la suppression.');
-    }
-  };
-
   const handleToggle = async (id) => {
     try {
       await toggleProductStatus(id);
@@ -117,7 +120,64 @@ const AdminProducts = () => {
     }
   };
 
-  const categories = [...new Set(products.map((p) => p.category).filter(Boolean))];
+  // Open confirmation modal
+  const askDeleteSingle = (id) => {
+    setDeleteTarget({ type: 'single', id });
+    setConfirmCode('');
+    setDeleteError('');
+  };
+
+  const askDeleteBatch = () => {
+    if (selected.size === 0) return;
+    setDeleteTarget({ type: 'batch' });
+    setConfirmCode('');
+    setDeleteError('');
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteTarget(null);
+    setConfirmCode('');
+    setDeleteError('');
+  };
+
+  const confirmDelete = async () => {
+    if (confirmCode !== CONFIRM_WORD) {
+      setDeleteError(`Veuillez saisir exactement "${CONFIRM_WORD}" pour confirmer.`);
+      return;
+    }
+    try {
+      if (deleteTarget.type === 'single') {
+        await deleteProduct(deleteTarget.id);
+        setSelected((prev) => { const s = new Set(prev); s.delete(deleteTarget.id); return s; });
+      } else {
+        await deleteProductsBatch([...selected]);
+        setSelected(new Set());
+      }
+      closeDeleteModal();
+      load();
+    } catch {
+      setDeleteError('Erreur lors de la suppression.');
+    }
+  };
+
+  // Select logic
+  const toggleSelect = (id) => {
+    setSelected((prev) => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((p) => p.id)));
+    }
+  };
+
+  const filterCategoryList = [...new Set(products.map((p) => p.category).filter(Boolean))];
 
   const filtered = products.filter((p) => {
     const matchSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -139,9 +199,16 @@ const AdminProducts = () => {
           <h1 className="admin-page-title">Produits</h1>
           <p className="admin-page-subtitle">{products.length} produit{products.length > 1 ? 's' : ''} au total</p>
         </div>
-        <button className="btn-primary" onClick={openAddModal}>
-          + Nouveau produit
-        </button>
+        <div className="header-actions">
+          {selected.size > 0 && (
+            <button className="btn-danger" onClick={askDeleteBatch}>
+              🗑 Supprimer la sélection ({selected.size})
+            </button>
+          )}
+          <button className="btn-primary" onClick={openAddModal}>
+            + Nouveau produit
+          </button>
+        </div>
       </div>
 
       {error && <div className="admin-error">{error}</div>}
@@ -161,7 +228,7 @@ const AdminProducts = () => {
           className="filter-select"
         >
           <option value="">Toutes les catégories</option>
-          {categories.map((cat) => (
+          {filterCategoryList.map((cat) => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
@@ -172,6 +239,14 @@ const AdminProducts = () => {
         <table className="admin-table">
           <thead>
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  checked={filtered.length > 0 && selected.size === filtered.length}
+                  onChange={toggleSelectAll}
+                  title="Tout sélectionner"
+                />
+              </th>
               <th>Image</th>
               <th>Nom</th>
               <th>Catégorie</th>
@@ -184,10 +259,17 @@ const AdminProducts = () => {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="empty-row">Aucun produit trouvé</td>
+                <td colSpan={8} className="empty-row">Aucun produit trouvé</td>
               </tr>
             ) : filtered.map((product) => (
-              <tr key={product.id}>
+              <tr key={product.id} className={selected.has(product.id) ? 'row-selected' : ''}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selected.has(product.id)}
+                    onChange={() => toggleSelect(product.id)}
+                  />
+                </td>
                 <td>
                   {product.imageUrl
                     ? <img src={product.imageUrl} alt={product.name} className="product-thumb" />
@@ -219,7 +301,7 @@ const AdminProducts = () => {
                 <td>
                   <div className="table-actions">
                     <button className="btn-edit" onClick={() => openEditModal(product)}>Modifier</button>
-                    <button className="btn-danger" onClick={() => setDeleteConfirm(product.id)}>Supprimer</button>
+                    <button className="btn-danger" onClick={() => askDeleteSingle(product.id)}>Supprimer</button>
                   </div>
                 </td>
               </tr>
@@ -244,7 +326,12 @@ const AdminProducts = () => {
                 </div>
                 <div className="form-group">
                   <label>Catégorie *</label>
-                  <input name="category" value={form.category} onChange={handleChange} required placeholder="Ex: Boissons" />
+                  <select name="category" value={form.category} onChange={handleChange} required>
+                    <option value="">— Choisir une catégorie —</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="form-group">
@@ -282,18 +369,43 @@ const AdminProducts = () => {
         </div>
       )}
 
-      {/* Delete Confirm Modal */}
-      {deleteConfirm && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="modal-overlay" onClick={closeDeleteModal}>
           <div className="modal modal--small" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">Confirmer la suppression</h2>
-              <button className="modal-close" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <h2 className="modal-title">⚠️ Confirmer la suppression</h2>
+              <button className="modal-close" onClick={closeDeleteModal}>✕</button>
             </div>
-            <p className="delete-warning">Cette action est irréversible. Le produit sera définitivement supprimé.</p>
+            <p className="delete-warning">
+              {deleteTarget.type === 'batch'
+                ? `Vous allez supprimer ${selected.size} produit(s). Cette action est irréversible.`
+                : 'Ce produit sera définitivement supprimé. Cette action est irréversible.'
+              }
+            </p>
+            <div className="form-group">
+              <label className="confirm-label">
+                Tapez <strong>{CONFIRM_WORD}</strong> pour confirmer :
+              </label>
+              <input
+                type="text"
+                value={confirmCode}
+                onChange={(e) => setConfirmCode(e.target.value.toUpperCase())}
+                placeholder={CONFIRM_WORD}
+                className="confirm-input"
+                autoFocus
+              />
+            </div>
+            {deleteError && <p className="delete-error">{deleteError}</p>}
             <div className="form-actions">
-              <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Annuler</button>
-              <button className="btn-danger" onClick={() => handleDelete(deleteConfirm)}>Supprimer</button>
+              <button className="btn-secondary" onClick={closeDeleteModal}>Annuler</button>
+              <button
+                className="btn-danger"
+                onClick={confirmDelete}
+                disabled={confirmCode !== CONFIRM_WORD}
+              >
+                Confirmer la suppression
+              </button>
             </div>
           </div>
         </div>

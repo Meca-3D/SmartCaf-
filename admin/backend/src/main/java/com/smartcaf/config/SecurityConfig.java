@@ -32,7 +32,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // IMPORTANT: laisse passer les preflights CORS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**", "/api/products/**", "/api/admin/**", "/h2-console/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/products/**", "/api/admin/**", "/api/orders/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             );
 

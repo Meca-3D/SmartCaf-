@@ -6,10 +6,12 @@ import com.smartcaf.dto.ProductSalesDto;
 import com.smartcaf.model.Category;
 import com.smartcaf.model.Order;
 import com.smartcaf.model.Product;
+import com.smartcaf.model.User;
 import com.smartcaf.repository.CategoryRepository;
 import com.smartcaf.repository.OrderItemRepository;
 import com.smartcaf.repository.OrderRepository;
 import com.smartcaf.repository.ProductRepository;
+import com.smartcaf.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,16 +30,19 @@ public class AdminController {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     public AdminController(
             ProductRepository productRepository,
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
-            CategoryRepository categoryRepository) {
+            CategoryRepository categoryRepository,
+            UserRepository userRepository) {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.categoryRepository = categoryRepository;
+        this.userRepository = userRepository;
     }
 
     // ===== DASHBOARD =====
@@ -195,15 +200,86 @@ public class AdminController {
     }
 
     @DeleteMapping("/categories/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
         if (!DatabaseConnectionChecker.databaseConnected) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
         return categoryRepository.findById(id)
                 .map(cat -> {
+                    List<Product> linked = productRepository.findByCategory(cat.getName());
+                    if (!linked.isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body(Map.of(
+                                        "message",
+                                        "Impossible de supprimer : " + linked.size() + " produit(s) utilisent cette catégorie."
+                                ));
+                    }
                     categoryRepository.delete(cat);
-                    return ResponseEntity.ok().<Void>build();
+                    return ResponseEntity.ok().<Object>build();
                 })
-                .orElse(ResponseEntity.notFound().<Void>build());
+                .orElse(ResponseEntity.notFound().<Object>build());
+    }
+
+    // ===== PRODUCTS - batch delete =====
+
+    @DeleteMapping("/products/batch")
+    public ResponseEntity<?> deleteProductsBatch(@RequestBody List<Long> ids) {
+        if (!DatabaseConnectionChecker.databaseConnected) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Aucun produit sélectionné"));
+        }
+        List<Product> toDelete = productRepository.findAllById(ids);
+        productRepository.deleteAll(toDelete);
+        return ResponseEntity.ok(Map.of("deleted", toDelete.size()));
+    }
+
+    // ===== USERS (admin) =====
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        if (!DatabaseConnectionChecker.databaseConnected) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        List<User> users = userRepository.findAll();
+        users.forEach(u -> u.setPassword(null));
+        return ResponseEntity.ok(users);
+    }
+
+    @PutMapping("/users/{id}/role")
+    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        if (!DatabaseConnectionChecker.databaseConnected) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        String role = body.get("role");
+        if (role == null || (!role.equals("CLIENT") && !role.equals("ADMIN"))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Rôle invalide (CLIENT ou ADMIN)"));
+        }
+        return userRepository.findById(id)
+                .map(user -> {
+                    user.setRole(role);
+                    User saved = userRepository.save(user);
+                    saved.setPassword(null);
+                    return ResponseEntity.ok(saved);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        if (!DatabaseConnectionChecker.databaseConnected) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        return userRepository.findById(id)
+                .map(user -> {
+                    if ("ADMIN".equals(user.getRole())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(Map.of("message", "Impossible de supprimer un compte administrateur"));
+                    }
+                    userRepository.delete(user);
+                    return ResponseEntity.ok().<Object>build();
+                })
+                .orElse(ResponseEntity.notFound().<Object>build());
     }
 }
