@@ -27,4 +27,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             ORDER BY SUM(oi.quantity) DESC
             """, nativeQuery = true)
     List<Object[]> findSalesStatsByProduct();
+
+    long countByProductId(Long productId);
+
+    void deleteByProductId(Long productId);
 }

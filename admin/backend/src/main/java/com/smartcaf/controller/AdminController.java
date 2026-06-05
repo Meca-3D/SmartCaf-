@@ -223,6 +223,7 @@ public class AdminController {
     // ===== PRODUCTS - batch delete =====
 
     @DeleteMapping("/products/batch")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> deleteProductsBatch(@RequestBody List<Long> ids) {
         if (!DatabaseConnectionChecker.databaseConnected) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
@@ -231,6 +232,7 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("message", "Aucun produit sélectionné"));
         }
         List<Product> toDelete = productRepository.findAllById(ids);
+        ids.forEach(orderItemRepository::deleteByProductId);
         productRepository.deleteAll(toDelete);
         return ResponseEntity.ok(Map.of("deleted", toDelete.size()));
     }

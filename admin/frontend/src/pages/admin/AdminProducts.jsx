@@ -155,8 +155,8 @@ const AdminProducts = () => {
       }
       closeDeleteModal();
       load();
-    } catch {
-      setDeleteError('Erreur lors de la suppression.');
+    } catch (err) {
+      setDeleteError(err?.response?.data?.message || 'Erreur lors de la suppression.');
     }
   };
 

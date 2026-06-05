@@ -29,6 +29,10 @@ const AdminLayout = () => {
             <span className="nav-icon">📦</span>
             <span>Produits</span>
           </NavLink>
+          <NavLink to="/admin/categories" className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}>
+            <span className="nav-icon">🏷️</span>
+            <span>Catégories</span>
+          </NavLink>
           <NavLink to="/admin/orders" className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}>
             <span className="nav-icon">🛒</span>
             <span>Commandes</span>

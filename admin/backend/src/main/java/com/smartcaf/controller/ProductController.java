@@ -1,6 +1,7 @@
 package com.smartcaf.controller;
 
 import com.smartcaf.model.Product;
+import com.smartcaf.repository.OrderItemRepository;
 import com.smartcaf.repository.ProductRepository;
 import com.smartcaf.config.DatabaseConnectionChecker;
 import jakarta.validation.Valid;
@@ -15,9 +16,11 @@ import java.util.List;
 public class ProductController {
 
     private final ProductRepository productRepository;
+    private final OrderItemRepository orderItemRepository;
     private final DatabaseConnectionChecker databaseConnectionChecker;
 
-    public ProductController(ProductRepository productRepository, DatabaseConnectionChecker databaseConnectionChecker) {
+    public ProductController(ProductRepository productRepository, OrderItemRepository orderItemRepository, DatabaseConnectionChecker databaseConnectionChecker) {
+        this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
         this.databaseConnectionChecker = databaseConnectionChecker;
     }
@@ -80,15 +83,17 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         if (!DatabaseConnectionChecker.databaseConnected) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
         return productRepository.findById(id)
                 .map(product -> {
+                    orderItemRepository.deleteByProductId(id);
                     productRepository.delete(product);
-                    return ResponseEntity.ok().<Void>build();
+                    return ResponseEntity.ok().<Object>build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().<Object>build());
     }
 }
