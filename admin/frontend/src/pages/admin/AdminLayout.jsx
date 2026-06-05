@@ -35,7 +35,11 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink to="/admin/sales" className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}>
             <span className="nav-icon">📈</span>
-            <span>Ventes</span>
+            <span>Statistiques</span>
+          </NavLink>
+          <NavLink to="/admin/clients" className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}>
+            <span className="nav-icon">👥</span>
+            <span>Clients</span>
           </NavLink>
         </nav>
 
