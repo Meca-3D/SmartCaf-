@@ -15,7 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.ynov.smartcafemobile.ui.theme.CoffeeBrown
+import com.ynov.smartcafemobile.ui.theme.DarkGreen
+import com.ynov.smartcafemobile.ui.theme.Gold
+import com.ynov.smartcafemobile.ui.theme.Gold
 import com.ynov.smartcafemobile.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,7 +48,7 @@ fun RegisterScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CoffeeBrown,
+                    containerColor = DarkGreen,
                     titleContentColor = androidx.compose.ui.graphics.Color.White,
                     navigationIconContentColor = androidx.compose.ui.graphics.Color.White
                 )
@@ -120,7 +122,8 @@ fun RegisterScreen(
                 onClick = { viewModel.register(firstName, lastName, email, password, onRegisterSuccess) },
                 enabled = isFormValid,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Gold)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(

@@ -1,41 +1,42 @@
 package com.ynov.smartcafemobile.ui.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// SmartCafé brand palette — warm coffee tones
-val CoffeeBrown = Color(0xFF6D4C41)
-val CoffeeDark = Color(0xFF4E342E)
-val CoffeeLight = Color(0xFF8D6E63)
-val Amber = Color(0xFFFFC107)
-val AmberDark = Color(0xFFFFA000)
-val Cream = Color(0xFFFFF8E1)
-val CreamDark = Color(0xFFFFECB3)
+// SmartCafé brand palette — Figma design
+val Gold        = Color(0xFFB08919)
+val GoldLight   = Color(0xFFC9A040)
+val DarkGreen   = Color(0xFF0F3D2E)
+val Beige       = Color(0xFFFFEABD)
+val BeigeLight  = Color(0xFFFFF5D6)
+val BrandRed    = Color(0xFFC0392B)
+val BrandText   = Color(0xFF3A2F2A)
 
-private val LightColors = lightColorScheme(
-    primary = CoffeeBrown,
-    onPrimary = Color.White,
-    primaryContainer = CoffeeLight,
-    onPrimaryContainer = Color.White,
-    secondary = Amber,
-    onSecondary = Color.Black,
-    secondaryContainer = AmberDark,
-    onSecondaryContainer = Color.Black,
-    background = Cream,
-    onBackground = Color(0xFF1C1B1F),
-    surface = Color.White,
-    onSurface = Color(0xFF1C1B1F),
-    error = Color(0xFFB00020),
-    onError = Color.White
+private val SmartCafeColors = lightColorScheme(
+    primary             = DarkGreen,
+    onPrimary           = Color.White,
+    primaryContainer    = Gold,
+    onPrimaryContainer  = Color.White,
+    secondary           = Gold,
+    onSecondary         = Color.White,
+    secondaryContainer  = GoldLight,
+    onSecondaryContainer = Color.White,
+    background          = Beige,
+    onBackground        = BrandText,
+    surface             = BeigeLight,
+    onSurface           = BrandText,
+    surfaceVariant      = Color(0xFFEDD99A),
+    onSurfaceVariant    = BrandText,
+    error               = BrandRed,
+    onError             = Color.White
 )
 
 @Composable
 fun SmartCafeTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = LightColors,
+        colorScheme = SmartCafeColors,
         content = content
     )
 }

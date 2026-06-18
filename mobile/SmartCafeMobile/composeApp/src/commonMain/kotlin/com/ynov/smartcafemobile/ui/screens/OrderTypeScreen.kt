@@ -13,7 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ynov.smartcafemobile.ui.theme.CoffeeBrown
+import com.ynov.smartcafemobile.ui.theme.DarkGreen
+import com.ynov.smartcafemobile.ui.theme.Gold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +33,7 @@ fun OrderTypeScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CoffeeBrown,
+                    containerColor = DarkGreen,
                     titleContentColor = Color.White
                 )
             )
@@ -86,7 +87,7 @@ private fun OrderTypeCard(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .border(2.dp, CoffeeBrown.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
+            .border(2.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -104,7 +105,7 @@ private fun OrderTypeCard(
                     title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = CoffeeBrown
+                    color = Gold
                 )
                 Text(
                     description,

@@ -14,7 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ynov.smartcafemobile.model.User
-import com.ynov.smartcafemobile.ui.theme.CoffeeBrown
+import com.ynov.smartcafemobile.ui.theme.Beige
+import com.ynov.smartcafemobile.ui.theme.DarkGreen
+import com.ynov.smartcafemobile.ui.theme.Gold
 import com.ynov.smartcafemobile.viewmodel.CartViewModel
 import com.ynov.smartcafemobile.viewmodel.OrderViewModel
 
@@ -49,7 +51,7 @@ fun PaymentScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CoffeeBrown,
+                    containerColor = DarkGreen,
                     titleContentColor = Color.White
                 )
             )
@@ -78,7 +80,7 @@ fun PaymentScreen(
                         Text(
                             if (orderType == "ON_SITE") "🪑 Sur place" else "🥡 Click & Collect",
                             fontWeight = FontWeight.Bold,
-                            color = CoffeeBrown
+                            color = Gold
                         )
                         if (tableId != null && tableId > 0) {
                             Text("Table n°$tableId", style = MaterialTheme.typography.bodySmall)
@@ -112,7 +114,7 @@ fun PaymentScreen(
                             Text(
                                 "${"%.2f".format(totalPrice)} €",
                                 fontWeight = FontWeight.Bold,
-                                color = CoffeeBrown,
+                                color = Gold,
                                 style = MaterialTheme.typography.titleSmall
                             )
                         }
@@ -160,7 +162,8 @@ fun PaymentScreen(
                 },
                 enabled = !isLoading && cartItems.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Gold)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(

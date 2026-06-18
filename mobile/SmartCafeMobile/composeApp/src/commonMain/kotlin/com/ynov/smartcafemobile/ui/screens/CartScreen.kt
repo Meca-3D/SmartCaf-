@@ -20,8 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.ynov.smartcafemobile.model.CartItem
-import com.ynov.smartcafemobile.ui.theme.CoffeeBrown
-import com.ynov.smartcafemobile.ui.theme.Cream
+import com.ynov.smartcafemobile.ui.theme.Beige
+import com.ynov.smartcafemobile.ui.theme.BrandText
+import com.ynov.smartcafemobile.ui.theme.DarkGreen
+import com.ynov.smartcafemobile.ui.theme.Gold
 import com.ynov.smartcafemobile.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +46,7 @@ fun CartScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CoffeeBrown,
+                    containerColor = DarkGreen,
                     titleContentColor = Color.White
                 )
             )
@@ -62,14 +64,15 @@ fun CartScreen(
                                 "${"%.2f".format(totalPrice)} €",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = CoffeeBrown
+                                color = Gold
                             )
                         }
                         Spacer(Modifier.height(12.dp))
                         Button(
                             onClick = onCheckout,
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Gold)
                         ) {
                             Text("Commander (${items.sumOf { it.quantity }} article${if (items.sumOf { it.quantity } > 1) "s" else ""})")
                         }
@@ -150,14 +153,14 @@ private fun CartItemRow(
                     modifier = Modifier
                         .size(60.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Cream),
+                        .background(Beige),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = cartItem.product.name.take(2).uppercase(),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = CoffeeBrown
+                        color = Gold
                     )
                 }
             }
@@ -169,7 +172,7 @@ private fun CartItemRow(
                 Text(
                     "${"%.2f".format(cartItem.product.price)} €",
                     style = MaterialTheme.typography.bodySmall,
-                    color = CoffeeBrown
+                    color = Gold
                 )
             }
 

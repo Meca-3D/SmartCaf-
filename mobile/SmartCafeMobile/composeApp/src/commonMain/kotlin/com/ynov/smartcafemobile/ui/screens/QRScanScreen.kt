@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ynov.smartcafemobile.platform.QRScannerContent
-import com.ynov.smartcafemobile.ui.theme.CoffeeBrown
+import com.ynov.smartcafemobile.ui.theme.DarkGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +30,7 @@ fun QRScanScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CoffeeBrown,
+                    containerColor = DarkGreen,
                     titleContentColor = Color.White
                 )
             )

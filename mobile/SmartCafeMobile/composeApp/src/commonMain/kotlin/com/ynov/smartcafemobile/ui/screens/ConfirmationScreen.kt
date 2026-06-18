@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ynov.smartcafemobile.ui.theme.CoffeeBrown
+import com.ynov.smartcafemobile.ui.theme.Gold
 
 @Composable
 fun ConfirmationScreen(
@@ -33,7 +33,7 @@ fun ConfirmationScreen(
             "Commande confirmée !",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = CoffeeBrown,
+            color = Gold,
             textAlign = TextAlign.Center
         )
 
@@ -62,7 +62,7 @@ fun ConfirmationScreen(
                     Text(
                         "Sur place — Table n°${tableId ?: "?"}",
                         fontWeight = FontWeight.Bold,
-                        color = CoffeeBrown
+                        color = Gold
                     )
                     Text(
                         "Votre commande sera apportée à votre table.",
@@ -74,7 +74,7 @@ fun ConfirmationScreen(
                     Text(
                         "Click & Collect",
                         fontWeight = FontWeight.Bold,
-                        color = CoffeeBrown
+                        color = Gold
                     )
                     Text(
                         "Votre commande est en préparation.\nRécupérez-la au comptoir.",
@@ -90,7 +90,8 @@ fun ConfirmationScreen(
         Button(
             onClick = onBackToHome,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp)
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = com.ynov.smartcafemobile.ui.theme.DarkGreen)
         ) {
             Text("Retour à l'accueil")
         }
