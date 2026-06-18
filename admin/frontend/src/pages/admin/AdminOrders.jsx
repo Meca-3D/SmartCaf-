@@ -133,9 +133,18 @@ const AdminOrders = () => {
                 <td>{order.customerName || `Client #${order.userId}` || '—'}</td>
                 <td className="date-cell">{formatDate(order.createdAt)}</td>
                 <td>
-                  {order.orderType && (
-                    <span className="badge badge-gray">{order.orderType}</span>
-                  )}
+                  <div className="order-type-cell">
+                    {order.orderType && (
+                      <span className="badge badge-gray">
+                        {order.orderType === 'ON_SITE' ? '🪑 Sur place'
+                          : order.orderType === 'CLICK_AND_COLLECT' ? '🥡 Click & Collect'
+                          : order.orderType}
+                      </span>
+                    )}
+                    {(order.tableNumber ?? order.tableId) != null && (
+                      <span className="table-number-badge">Table #{order.tableNumber ?? order.tableId}</span>
+                    )}
+                  </div>
                 </td>
                 <td>
                   <span className="items-count">{order.items?.length ?? 0} article{(order.items?.length ?? 0) > 1 ? 's' : ''}</span>
@@ -191,10 +200,10 @@ const AdminOrders = () => {
                   <span className="detail-label">Type</span>
                   <span>{selectedOrder.orderType || '—'}</span>
                 </div>
-                {selectedOrder.tableId && (
+                {(selectedOrder.tableNumber ?? selectedOrder.tableId) != null && (
                   <div className="order-detail-row">
                     <span className="detail-label">Table</span>
-                    <span>#{selectedOrder.tableId}</span>
+                    <span className="table-number">🪑 Table #{selectedOrder.tableNumber ?? selectedOrder.tableId}</span>
                   </div>
                 )}
                 <div className="order-detail-row">

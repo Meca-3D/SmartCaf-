@@ -12,6 +12,7 @@ import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminSales from './pages/admin/AdminSales';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminSettings from './pages/admin/AdminSettings';
 import { ProtectedAdminRoute } from './pages/admin/ProtectedAdminRoute';
 import './App.css';
 
@@ -43,6 +44,7 @@ function App() {
           <Route path="orders" element={<AdminOrders />} />
           <Route path="sales" element={<AdminSales />} />
           <Route path="clients" element={<AdminUsers />} />
+          <Route path="settings" element={<AdminSettings />} />
         </Route>
 
         {/* Routes client — layout avec Header */}

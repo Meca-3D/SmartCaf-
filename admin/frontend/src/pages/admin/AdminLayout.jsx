@@ -41,6 +41,10 @@ const AdminLayout = () => {
             <span className="nav-icon">👥</span>
             <span>Clients</span>
           </NavLink>
+          <NavLink to="/admin/settings" className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}>
+            <span className="nav-icon">⚙️</span>
+            <span>Paramètres</span>
+          </NavLink>
         </nav>
 
         <div className="admin-sidebar-footer">

@@ -30,13 +30,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // IMPORTANT: laisse passer les preflights CORS
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**", "/api/products/**", "/api/admin/**", "/api/orders/**", "/h2-console/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/**").permitAll()
             );
 
-        // Pour H2 Console
         http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();

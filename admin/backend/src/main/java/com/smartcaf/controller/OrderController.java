@@ -1,11 +1,13 @@
 package com.smartcaf.controller;
 
 import com.smartcaf.dto.CreateOrderRequest;
+import com.smartcaf.model.CafeTable;
 import com.smartcaf.model.Order;
 import com.smartcaf.model.OrderItem;
 import com.smartcaf.model.Product;
 import com.smartcaf.repository.OrderRepository;
 import com.smartcaf.repository.ProductRepository;
+import com.smartcaf.repository.TableRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,9 @@ public class OrderController {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private TableRepository tableRepository;
+
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest request) {
         if (request.getItems() == null || request.getItems().isEmpty()) {
@@ -35,8 +40,25 @@ public class OrderController {
         Order order = new Order();
         order.setCustomerName(request.getCustomerName());
         order.setOrderType(request.getOrderType());
-        order.setTableId(request.getTableId());
         order.setStatus("PENDING");
+
+        // Résoudre le numéro de table → ID FK réel, et stocker le numéro logique
+        if (request.getTableId() != null && "ON_SITE".equals(request.getOrderType())) {
+            int tableNum = request.getTableId().intValue();
+            order.setTableNumber(tableNum);
+            Long resolvedTableId = tableRepository.findByTableNumber(tableNum)
+                    .map(CafeTable::getId)
+                    .orElseGet(() -> {
+                        CafeTable newTable = new CafeTable();
+                        newTable.setTableNumber(tableNum);
+                        newTable.setQrCode(String.valueOf(tableNum));
+                        return tableRepository.save(newTable).getId();
+                    });
+            order.setTableId(resolvedTableId);
+        } else {
+            order.setTableId(null);
+            order.setTableNumber(null);
+        }
 
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;

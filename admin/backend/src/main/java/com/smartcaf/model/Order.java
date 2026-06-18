@@ -27,6 +27,9 @@ public class Order {
     @Column(name = "table_id")
     private Long tableId;
 
+    @Column(name = "table_number")
+    private Integer tableNumber;
+
     @Column(name = "customer_name")
     private String customerName;
 

@@ -56,11 +56,11 @@ Le projet **SmartCafé** vise à développer un prototype fonctionnel permettant
 
 | Couche | Technologie |
 |---|---|
-| Backend | Java 25, Spring Boot, Maven 4.0 |
+| Backend | Java 17, Spring Boot 3.2.1, Maven 3.9 |
 | Frontend Web | React (Vite), JavaScript ES6+, Zustand |
-| Application Mobile | Kotlin Multiplatform, Jetpack Compose, Ktor |
+| Application Mobile | Kotlin Multiplatform, Jetpack Compose Multiplatform, Ktor |
 | Base de données | MySQL 8.0 |
-| Sécurité | Spring Security, BCrypt |
+| Sécurité | Spring Security 6, BCrypt |
 | Communication | API REST, JSON, Axios (web) / Ktor (mobile) |
 
 ---
@@ -207,11 +207,11 @@ L'administrateur consulte la liste complète des produits. Il peut :
 
 #### 3.2.3 Gestion des commandes
 
-L'administrateur visualise toutes les commandes classées par date décroissante. Il peut consulter le détail d'une commande (articles, quantités, prix, type) et mettre à jour son statut parmi les valeurs : `PENDING`, `IN_PREPARATION`, `READY`, `COMPLETED`, `CANCELLED`.
+L'administrateur visualise toutes les commandes classées par date décroissante. Chaque ligne indique le type de commande (🪑 **Sur place** avec badge `Table #X` ou 🥡 **Click & Collect**) et le statut courant. Il peut consulter le détail d'une commande (articles, quantités, prix, type, numéro de table) et mettre à jour son statut parmi les valeurs : `PENDING`, `IN_PREPARATION`, `READY`, `COMPLETED`, `CANCELLED`.
 
-**[Capture d'écran : page AdminOrders avec le tableau des commandes et les badges de statut colorés]**
+**[Capture d'écran : page AdminOrders avec le tableau des commandes, les badges de type et les badges de statut colorés]**
 
-**[Capture d'écran : vue détail d'une commande avec la liste des articles et le sélecteur de statut]**
+**[Capture d'écran : vue détail d'une commande avec la liste des articles, le numéro de table et le sélecteur de statut]**
 
 #### 3.2.4 Gestion des utilisateurs
 
@@ -221,9 +221,17 @@ L'administrateur consulte la liste de tous les utilisateurs inscrits (prénom, n
 
 #### 3.2.5 Statistiques de ventes
 
-Une page dédiée aux statistiques de vente permet à l'administrateur de visualiser les performances par produit : nom, catégorie, quantité totale vendue et chiffre d'affaires généré.
+La page de statistiques présente :
+- **Bande KPI** : 4 tuiles (CA total, commandes totales, produits vendus, panier moyen)
+- **Podium Top 3** : médaille or/argent/bronze pour les 3 meilleurs produits
+- **Tableau de classement** : tous les produits avec barre de progression animée, quantité vendue et CA
+- **Filtres** : sélecteur de période et barre de recherche par produit
 
-**[Capture d'écran : page AdminSales avec le tableau des ventes par produit]**
+**[Capture d'écran : page AdminSales avec le strip KPI, le podium top-3 et le tableau de classement]**
+
+#### 3.2.6 Paramètres
+
+La page Paramètres regroupe trois sections sous forme de cartes : **Général** (nom du café, fuseau horaire, langue), **Commandes** (délai de préparation, fermeture des commandes, notifications sonores) et **Zone de danger** (remise à zéro des statistiques, suppression de toutes les commandes). Les options booléennes sont présentées sous forme de toggles iOS.
 
 ---
 
@@ -341,11 +349,14 @@ products (id, name, description, price, stock, imageUrl, isActive, category, cre
 #### Order
 
 ```
-orders (id, userId, tableId, customerName, orderType, status, totalPrice, createdAt)
+orders (id, userId, tableId, tableNumber, customerName, orderType, status, totalPrice, createdAt)
 ```
 
-- `orderType` : `SUR_PLACE` ou `A_EMPORTER`
+- `orderType` : `ON_SITE` (sur place) ou `CLICK_AND_COLLECT` (à emporter)
+- `tableId` : clé étrangère vers `tables.id` (nullable, uniquement pour `ON_SITE`)
+- `tableNumber` : numéro logique de la table scannée par QR code (affiché en admin)
 - `status` : `PENDING` → `IN_PREPARATION` → `READY` → `COMPLETED` / `CANCELLED`
+- `createdAt` : initialisé automatiquement via `@PrePersist`
 - Relation `@OneToMany` avec `OrderItem`
 
 #### OrderItem
@@ -372,14 +383,9 @@ La sécurité est gérée par **Spring Security** :
 - CSRF désactivé (API REST)
 - CORS configuré pour autoriser les origines des clients web et mobile
 
-Les endpoints publics (sans authentification) sont :
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/products/**`
-- `POST /api/orders`
-- `GET /api/admin/**` *(sécurisation côté frontend via ProtectedAdminRoute)*
+La configuration Spring Security actuelle autorise toutes les requêtes sans authentification (`.requestMatchers("/**").permitAll()`). La protection des routes admin est assurée **côté frontend** uniquement via `ProtectedAdminRoute`.
 
-> **Note** : La génération de JWT est prévue dans la configuration mais n'est pas encore finalisée côté backend (commentaire `TODO` dans `AuthController`). L'authentification est actuellement gérée par session côté frontend via le store Zustand.
+> **Note** : La génération de JWT est prévue mais non finalisée. L'authentification est maintenue côté client via le store Zustand + `localStorage`. En production, il faudra restreindre les endpoints `/api/admin/**` avec `hasRole('ADMIN')` et implémenter une validation JWT côté backend.
 
 ---
 
@@ -405,7 +411,8 @@ Le frontend est développé en **React** avec **Vite** comme bundler. Il compren
 | `/admin/products` | `AdminProducts.jsx` | Gestion produits |
 | `/admin/orders` | `AdminOrders.jsx` | Gestion commandes |
 | `/admin/users` | `AdminUsers.jsx` | Gestion utilisateurs |
-| `/admin/sales` | `AdminSales.jsx` | Statistiques de ventes |
+| `/admin/sales` | `AdminSales.jsx` | Statistiques de ventes (KPI + podium + tableau) |
+| `/admin/settings` | `AdminSettings.jsx` | Paramètres du café |
 
 ### 5.3 Gestion de l'état (State Management)
 
@@ -594,12 +601,13 @@ zxing-android-embedded   # Scan QR (Android)
 |---|---|---|
 | `id` | BIGINT | PK, AUTO_INCREMENT |
 | `user_id` | BIGINT | FK → users.id (nullable) |
-| `table_id` | BIGINT | FK → tables.id (nullable) |
+| `table_id` | BIGINT | FK → tables.id (nullable, ON_SITE uniquement) |
+| `table_number` | INT | Numéro logique de la table (affiché en admin) |
 | `customer_name` | VARCHAR(255) | Nom du client |
-| `order_type` | VARCHAR(50) | SUR_PLACE ou A_EMPORTER |
+| `order_type` | VARCHAR(50) | `ON_SITE` ou `CLICK_AND_COLLECT` |
 | `status` | VARCHAR(50) | PENDING / IN_PREPARATION / READY / COMPLETED / CANCELLED |
 | `total_price` | DECIMAL(10,2) | Montant total |
-| `created_at` | DATETIME | Date de création |
+| `created_at` | DATETIME | Date de création (auto via @PrePersist) |
 
 #### `order_items`
 | Colonne | Type | Description |
@@ -753,8 +761,8 @@ Crée une nouvelle commande.
 ```json
 {
   "customerName": "Jean Dupont",
-  "orderType": "SUR_PLACE",
-  "tableId": 3,
+  "orderType": "ON_SITE",
+  "tableId": 12,
   "items": [
     { "productId": 1, "quantity": 2 },
     { "productId": 5, "quantity": 1 }
@@ -762,7 +770,22 @@ Crée une nouvelle commande.
 }
 ```
 
-**Réponse `200 OK` :** l'objet `Order` créé avec son `id` et le total calculé.
+> `orderType` accepte `ON_SITE` (sur place) ou `CLICK_AND_COLLECT` (à emporter).  
+> Pour `ON_SITE`, `tableId` contient le **numéro logique** de la table (issu du QR code). Le backend résout automatiquement ce numéro vers la clé étrangère réelle dans `tables.id`, en créant l'entrée si elle n'existe pas encore.
+
+**Réponse `200 OK` :**
+```json
+{
+  "id": 42,
+  "orderType": "ON_SITE",
+  "tableId": 4,
+  "tableNumber": 12,
+  "status": "PENDING",
+  "totalPrice": 8.50,
+  "createdAt": "2026-06-18T18:15:48",
+  "items": [...]
+}
+```
 
 #### GET `/api/orders/{id}`
 Retourne le détail d'une commande par son identifiant.
@@ -862,7 +885,7 @@ La chaîne de filtres Spring Security est configurée en mode **STATELESS** (san
 ### 9.4 Points d'amélioration identifiés
 
 - **JWT** : l'implémentation JWT est prévue mais non finalisée. Actuellement, l'état de connexion est maintenu côté client uniquement (Zustand + localStorage). En production, il faudrait implémenter une génération de token JWT signé à la connexion et une validation côté backend sur chaque requête protégée.
-- **Autorisation admin** : les endpoints `/api/admin/**` sont actuellement ouverts au niveau du filtre Spring Security. La protection est assurée uniquement côté frontend (`ProtectedAdminRoute`). En production, il faudrait vérifier le rôle côté backend via `@PreAuthorize("hasRole('ADMIN')")`.
+- **Autorisation admin** : les endpoints `/api/admin/**` sont actuellement ouverts (`permitAll()`). La protection est assurée uniquement côté frontend (`ProtectedAdminRoute`). En production, il faudrait vérifier le rôle côté backend via `@PreAuthorize("hasRole('ADMIN')")`.
 - **HTTPS** : à configurer obligatoirement en environnement de production.
 
 ---
@@ -873,10 +896,11 @@ La chaîne de filtres Spring Security est configurée en mode **STATELESS** (san
 
 | Outil | Version minimale |
 |---|---|
-| Java (JDK) | 17+ |
-| Maven | 3.6+ |
+| Java (JDK) | 17 |
+| Maven | 3.9+ |
 | Node.js | 18+ |
 | MySQL | 8.0 |
+| Docker | 24+ (optionnel, pour la conteneurisation) |
 | Android Studio | 2024.1+ (pour le mobile) |
 
 ### 10.2 Base de données
@@ -910,6 +934,9 @@ cd admin/backend
 
 Le backend est accessible sur **http://localhost:8081**
 
+> L'URL de connexion MySQL doit contenir l'encodage `%C3%A9` pour le nom de base `smartcafé` :
+> `jdbc:mysql://localhost:3306/smartcaf%C3%A9?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true`
+
 **[Capture d'écran : terminal affichant le démarrage Spring Boot avec le message "Started SmartCafApplication"]**
 
 ### 10.4 Frontend Web (React)
@@ -920,11 +947,20 @@ cd admin/frontend
 # Installer les dépendances
 npm install
 
-# Lancer en développement
+# Lancer en développement (backend + frontend ensemble)
 npm run dev
 ```
 
-Le frontend est accessible sur **http://localhost:5173**
+Le frontend est accessible sur **http://localhost:5173** (dev) ou **http://localhost:3000** (Docker/prod).
+
+**Construction Docker production :**
+```bash
+# Depuis la racine du projet
+docker build -t smartcafe-frontend ./admin/frontend
+docker run -p 3000:3000 smartcafe-frontend
+```
+
+Le Dockerfile frontend utilise un **build multi-stage** : Vite compile le bundle dans le stage Node, puis Nginx le sert en production. Toutes les routes SPA sont redirigées vers `index.html`.
 
 **[Capture d'écran : terminal affichant le démarrage Vite avec l'URL locale]**
 
@@ -955,7 +991,7 @@ Le projet a été développé en suivant une approche agile inspirée de **Scrum
 | Phase 0 | Setup API + Figma | Terminé |
 | Phase 1 | MVP fonctionnel (catalogue, panier, commande, auth) | Terminé |
 | Phase 2 | Back-office admin, statistiques | Terminé |
-| Phase 3 | QR Code, types de commande, mobile | En cours |
+| Phase 3 | QR Code, types de commande, mobile responsive, numéros de table | Terminé |
 | Phase 4 | Fidélisation, notifications push, déploiement | Prévu |
 
 ### 11.2 Gestion de versions (Git)
