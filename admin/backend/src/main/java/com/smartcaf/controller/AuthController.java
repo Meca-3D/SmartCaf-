@@ -52,4 +52,27 @@ public class AuthController {
             "user", user
         ));
     }
-}
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String currentPassword = body.get("currentPassword");
+        String newPassword = body.get("newPassword");
+
+        if (email == null || currentPassword == null || newPassword == null || newPassword.length() < 6) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Données invalides"));
+        }
+
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(401).body(Map.of("message", "Utilisateur introuvable"));
+        }
+
+        User user = userOpt.get();
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            return ResponseEntity.status(401).body(Map.of("message", "Mot de passe actuel incorrect"));
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "Mot de passe modifié avec succès"));
+    }}

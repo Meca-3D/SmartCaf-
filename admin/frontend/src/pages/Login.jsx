@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 import { useUserStore } from '../store/userStore';
@@ -8,6 +9,7 @@ const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +38,7 @@ const Login = ({ onLogin }) => {
       if (response.ok) {
         setUser(data.user);
         onLogin && onLogin(data);
+        navigate('/admin');
       } else {
         // On donne un message utile, sans bloquer si message absent
         setError(data?.message || `Erreur de connexion (HTTP ${response.status})`);

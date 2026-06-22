@@ -1,11 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
-import { Header } from './components/Header';
-import { Home } from './pages/Home';
-import { Products } from './pages/Products';
-import { ProductDetail } from './pages/ProductDetail';
-import { Cart } from './pages/Cart';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
@@ -14,17 +8,8 @@ import AdminSales from './pages/admin/AdminSales';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminSettings from './pages/admin/AdminSettings';
 import { ProtectedAdminRoute } from './pages/admin/ProtectedAdminRoute';
+import { ProtectedAdminOnlyRoute } from './pages/admin/ProtectedAdminOnlyRoute';
 import './App.css';
-
-// Layout pour les pages client (avec Header)
-const CustomerLayout = () => (
-  <div className="app">
-    <Header />
-    <main className="main-content">
-      <Outlet />
-    </main>
-  </div>
-);
 
 function App() {
   return (
@@ -40,22 +25,15 @@ function App() {
           }
         >
           <Route index element={<AdminDashboard />} />
-          <Route path="products" element={<AdminProducts />} />
+          <Route path="products" element={<ProtectedAdminOnlyRoute><AdminProducts /></ProtectedAdminOnlyRoute>} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="sales" element={<AdminSales />} />
-          <Route path="clients" element={<AdminUsers />} />
-          <Route path="settings" element={<AdminSettings />} />
+          <Route path="clients" element={<ProtectedAdminOnlyRoute><AdminUsers /></ProtectedAdminOnlyRoute>} />
+          <Route path="settings" element={<ProtectedAdminOnlyRoute><AdminSettings /></ProtectedAdminOnlyRoute>} />
         </Route>
 
-        {/* Routes client — layout avec Header */}
-        <Route element={<CustomerLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-        </Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );

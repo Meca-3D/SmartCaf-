@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -15,6 +16,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllOrderedByDate();
 
     List<Order> findByStatus(String status);
+
+    List<Order> findByStatusAndCreatedAtBefore(String status, LocalDateTime cutoff);
 
     long countByStatus(String status);
 

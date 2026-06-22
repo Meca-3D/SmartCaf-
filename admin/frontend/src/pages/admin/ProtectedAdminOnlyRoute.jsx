@@ -1,15 +1,15 @@
 import { Navigate } from 'react-router-dom';
 import { useUserStore } from '../../store/userStore';
 
-export const ProtectedAdminRoute = ({ children }) => {
+export const ProtectedAdminOnlyRoute = ({ children }) => {
   const user = useUserStore((state) => state.user);
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.role !== 'ADMIN' && user.role !== 'EMPLOYER') {
-    return <Navigate to="/" replace />;
+  if (user.role !== 'ADMIN') {
+    return <Navigate to="/admin" replace />;
   }
 
   return children;

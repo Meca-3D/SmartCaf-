@@ -124,3 +124,21 @@ export const deleteAdminUser = async (id) => {
   await api.delete(`/admin/users/${id}`);
 };
 
+// ===== ADMIN - Change password =====
+export const changeAdminPassword = async (email, currentPassword, newPassword) => {
+  const response = await api.put('/auth/change-password', { email, currentPassword, newPassword });
+  return response.data;
+};
+
+// ===== ADMIN - Create employer account =====
+export const createEmployerAccount = async (data) => {
+  const response = await api.post('/admin/users/employer', data);
+  return response.data;
+};
+
+// ===== ADMIN - Purge old orders =====
+export const purgeOldOrders = async (days = 90) => {
+  const response = await api.delete(`/admin/orders/purge?days=${days}`);
+  return response.data;
+};
+

@@ -130,6 +130,7 @@ const AdminUsers = () => {
         >
           <option value="">Tous les rôles</option>
           <option value="CLIENT">Client</option>
+          <option value="EMPLOYER">Employé</option>
           <option value="ADMIN">Admin</option>
         </select>
       </div>
@@ -160,8 +161,8 @@ const AdminUsers = () => {
                 </td>
                 <td className="user-email">{user.email}</td>
                 <td>
-                  <span className={`badge ${user.role === 'ADMIN' ? 'badge-admin' : 'badge-client'}`}>
-                    {user.role === 'ADMIN' ? '🔑 Admin' : '👤 Client'}
+                  <span className={`badge ${user.role === 'ADMIN' ? 'badge-admin' : user.role === 'EMPLOYER' ? 'badge-info' : 'badge-client'}`}>
+                    {user.role === 'ADMIN' ? '🔑 Admin' : user.role === 'EMPLOYER' ? '🧑‍💼 Employé' : '👤 Client'}
                   </span>
                 </td>
                 <td>{formatDate(user.createdAt)}</td>
@@ -198,6 +199,7 @@ const AdminUsers = () => {
               <label>Nouveau rôle</label>
               <select value={newRole} onChange={(e) => setNewRole(e.target.value)} className="filter-select" style={{ width: '100%' }}>
                 <option value="CLIENT">Client</option>
+                <option value="EMPLOYER">Employé</option>
                 <option value="ADMIN">Admin</option>
               </select>
             </div>

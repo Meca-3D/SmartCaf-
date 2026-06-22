@@ -17,7 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,18 +35,21 @@ public class AdminController {
     private final OrderItemRepository orderItemRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AdminController(
             ProductRepository productRepository,
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             CategoryRepository categoryRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // ===== DASHBOARD =====
@@ -281,5 +288,35 @@ public class AdminController {
                     return ResponseEntity.ok().<Object>build();
                 })
                 .orElse(ResponseEntity.notFound().<Object>build());
+    }
+
+    // ===== PURGE OLD ORDERS =====
+
+    @DeleteMapping("/orders/purge")
+    @Transactional
+    public ResponseEntity<?> purgeOldOrders(@RequestParam(defaultValue = "90") int days) {
+        if (!DatabaseConnectionChecker.databaseConnected) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(days);
+        List<Order> toDelete = orderRepository.findByStatusAndCreatedAtBefore("COMPLETED", cutoff);
+        orderRepository.deleteAll(toDelete);
+        return ResponseEntity.ok(Map.of("message", "Commandes purgées avec succès", "count", toDelete.size()));
+    }
+
+    // ===== CREATE EMPLOYER ACCOUNT =====
+
+    @PostMapping("/users/employer")
+    public ResponseEntity<?> createEmployer(@RequestBody User user) {
+        if (!DatabaseConnectionChecker.databaseConnected) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        if (userRepository.existsByEmail(user.getEmail())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email déjà utilisé"));
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole("EMPLOYER");
+        userRepository.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Compte employé créé avec succès"));
     }
 }

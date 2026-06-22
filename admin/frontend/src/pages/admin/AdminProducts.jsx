@@ -7,6 +7,7 @@ import {
   deleteProductsBatch,
   toggleProductStatus,
   getAdminCategories,
+  createAdminCategory,
 } from '../../services/api';
 import './AdminProducts.css';
 
@@ -36,6 +37,12 @@ const AdminProducts = () => {
 
   // Selection
   const [selected, setSelected] = useState(new Set());
+
+  // Category modal
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryForm, setCategoryForm] = useState({ name: '', description: '' });
+  const [categorySaving, setCategorySaving] = useState(false);
+  const [categoryError, setCategoryError] = useState('');
 
   // Delete confirmation modal (single or batch)
   const [deleteTarget, setDeleteTarget] = useState(null); // { type: 'single'|'batch', id?: number }
@@ -177,6 +184,33 @@ const AdminProducts = () => {
     }
   };
 
+  const openCategoryModal = () => {
+    setCategoryForm({ name: '', description: '' });
+    setCategoryError('');
+    setShowCategoryModal(true);
+  };
+
+  const closeCategoryModal = () => {
+    setShowCategoryModal(false);
+    setCategoryForm({ name: '', description: '' });
+    setCategoryError('');
+  };
+
+  const handleCategorySubmit = async (e) => {
+    e.preventDefault();
+    setCategorySaving(true);
+    setCategoryError('');
+    try {
+      await createAdminCategory(categoryForm);
+      closeCategoryModal();
+      load();
+    } catch {
+      setCategoryError('Erreur lors de la création de la catégorie.');
+    } finally {
+      setCategorySaving(false);
+    }
+  };
+
   const filterCategoryList = [...new Set(products.map((p) => p.category).filter(Boolean))];
 
   const filtered = products.filter((p) => {
@@ -205,6 +239,9 @@ const AdminProducts = () => {
               🗑 Supprimer la sélection ({selected.size})
             </button>
           )}
+          <button className="btn-secondary" onClick={openCategoryModal}>
+            + Nouvelle catégorie
+          </button>
           <button className="btn-primary" onClick={openAddModal}>
             + Nouveau produit
           </button>
@@ -362,6 +399,44 @@ const AdminProducts = () => {
                 <button type="button" className="btn-secondary" onClick={closeModal}>Annuler</button>
                 <button type="submit" className="btn-primary" disabled={saving}>
                   {saving ? 'Enregistrement...' : editProduct ? 'Mettre à jour' : 'Créer le produit'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Category Modal */}
+      {showCategoryModal && (
+        <div className="modal-overlay" onClick={closeCategoryModal}>
+          <div className="modal modal--small" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Nouvelle catégorie</h2>
+              <button className="modal-close" onClick={closeCategoryModal}>✕</button>
+            </div>
+            <form className="admin-form" onSubmit={handleCategorySubmit}>
+              <div className="form-group">
+                <label>Nom *</label>
+                <input
+                  value={categoryForm.name}
+                  onChange={(e) => setCategoryForm((p) => ({ ...p, name: e.target.value }))}
+                  required
+                  placeholder="Ex: Boissons chaudes"
+                />
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea
+                  value={categoryForm.description}
+                  onChange={(e) => setCategoryForm((p) => ({ ...p, description: e.target.value }))}
+                  placeholder="Description de la catégorie..."
+                />
+              </div>
+              {categoryError && <p className="delete-error">{categoryError}</p>}
+              <div className="form-actions">
+                <button type="button" className="btn-secondary" onClick={closeCategoryModal}>Annuler</button>
+                <button type="submit" className="btn-primary" disabled={categorySaving}>
+                  {categorySaving ? 'Création...' : 'Créer la catégorie'}
                 </button>
               </div>
             </form>
