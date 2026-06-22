@@ -221,36 +221,24 @@ private fun SmartCafeBottomBar(
         ) {
             BottomTab.entries.forEach { tab ->
                 val isSelected = tab == selectedTab
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (isSelected) Gold else Color.White.copy(alpha = 0.15f)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (tab == BottomTab.Cart && cartItemCount > 0) {
-                        BadgedBox(
-                            badge = {
-                                Badge(containerColor = Color.White) {
-                                    Text("$cartItemCount", color = DarkGreen)
-                                }
-                            }
-                        ) {
-                            IconButton(
-                                onClick = { onTabSelected(tab) },
-                                modifier = Modifier.size(44.dp)
-                            ) {
-                                Icon(
-                                    tab.icon,
-                                    contentDescription = tab.label,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(22.dp)
-                                )
+                BadgedBox(
+                    badge = {
+                        if (tab == BottomTab.Cart && cartItemCount > 0) {
+                            Badge(containerColor = Color.White) {
+                                Text("$cartItemCount", color = DarkGreen)
                             }
                         }
-                    } else {
+                    }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isSelected) Gold else Color.White.copy(alpha = 0.15f)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
                         IconButton(
                             onClick = { onTabSelected(tab) },
                             modifier = Modifier.size(44.dp)

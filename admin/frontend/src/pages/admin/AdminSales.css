@@ -177,7 +177,7 @@
 
 .sales-product-name {
   font-size: 0.92rem;
-  color: #f1f5f9;
+  color: #000000;
 }
 
 .sales-bar-row {
@@ -208,7 +208,7 @@
 .sales-bar-label {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #60a5fa;
   white-space: nowrap;
   min-width: 48px;
 }

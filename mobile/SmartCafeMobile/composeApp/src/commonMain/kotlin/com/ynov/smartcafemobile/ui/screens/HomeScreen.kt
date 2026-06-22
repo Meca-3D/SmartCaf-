@@ -1,14 +1,17 @@
 package com.ynov.smartcafemobile.ui.screens
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -43,13 +46,17 @@ fun HomeScreen(
     val error by productViewModel.error.collectAsState()
     val selectedCategory by productViewModel.selectedCategory.collectAsState()
     val cartItemCount by cartViewModel.totalItems.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    val filterScrollState = rememberScrollState()
+    val nouveautesScrollState = rememberScrollState()
+    val carteScrollState = rememberScrollState()
 
     var searchQuery by remember { mutableStateOf("") }
     val filteredProducts = if (searchQuery.isBlank()) products else products.filter {
         it.name.contains(searchQuery, ignoreCase = true)
     }
-    val nouveautes = filteredProducts.take(2)
-    val carteProducts = filteredProducts.drop(2).take(6)
+    val nouveautes = filteredProducts
+    val carteProducts = filteredProducts
 
     Scaffold(
         topBar = {
@@ -157,22 +164,22 @@ fun HomeScreen(
                     val categories = productViewModel.getCategories()
                     if (categories.isNotEmpty()) {
                         item {
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                            Row(
+                                modifier = Modifier
+                                    .mouseWheelHorizontalScroll(filterScrollState, coroutineScope)
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                item {
-                                    FilterChip(
-                                        selected = selectedCategory == null,
-                                        onClick = { productViewModel.filterByCategory(null) },
-                                        label = { Text("Tout") },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = Gold,
-                                            selectedLabelColor = Color.White
-                                        )
+                                FilterChip(
+                                    selected = selectedCategory == null,
+                                    onClick = { productViewModel.filterByCategory(null) },
+                                    label = { Text("Tout") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Gold,
+                                        selectedLabelColor = Color.White
                                     )
-                                }
-                                items(categories) { cat ->
+                                )
+                                categories.forEach { cat ->
                                     FilterChip(
                                         selected = selectedCategory == cat,
                                         onClick = { productViewModel.filterByCategory(cat) },
@@ -210,12 +217,14 @@ fun HomeScreen(
                         }
                     } else {
                         item {
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 16.dp),
+                            Row(
+                                modifier = Modifier
+                                    .mouseWheelHorizontalScroll(nouveautesScrollState, coroutineScope)
+                                    .padding(horizontal = 16.dp, vertical = 4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                items(nouveautes) { product ->
-                                    Box(modifier = Modifier.width(180.dp)) {
+                                nouveautes.forEach { product ->
+                                    Box(modifier = Modifier.width(240.dp)) {
                                         ProductCard(
                                             product = product,
                                             onAddToCart = { cartViewModel.addItem(product) }
@@ -262,11 +271,13 @@ fun HomeScreen(
                     }
                     if (carteProducts.isEmpty() && !isLoading) {
                         item {
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 16.dp),
+                            Row(
+                                modifier = Modifier
+                                    .mouseWheelHorizontalScroll(carteScrollState, coroutineScope)
+                                    .padding(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                items(3) {
+                                repeat(3) {
                                     Box(
                                         Modifier
                                             .size(100.dp)
@@ -278,12 +289,14 @@ fun HomeScreen(
                         }
                     } else {
                         item {
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 16.dp),
+                            Row(
+                                modifier = Modifier
+                                    .mouseWheelHorizontalScroll(carteScrollState, coroutineScope)
+                                    .padding(horizontal = 16.dp, vertical = 4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                items(carteProducts) { product ->
-                                    Box(modifier = Modifier.width(140.dp)) {
+                                carteProducts.forEach { product ->
+                                    Box(modifier = Modifier.width(180.dp)) {
                                         ProductCard(
                                             product = product,
                                             onAddToCart = { cartViewModel.addItem(product) }
@@ -298,6 +311,28 @@ fun HomeScreen(
         }
     }
 }
+
+private fun Modifier.mouseWheelHorizontalScroll(
+    scrollState: ScrollState,
+    scope: CoroutineScope
+): Modifier = this
+    .horizontalScroll(scrollState)
+    .pointerInput(scrollState) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent()
+                if (event.type == PointerEventType.Scroll) {
+                    val delta = event.changes.firstOrNull()?.scrollDelta
+                    if (delta != null) {
+                        event.changes.forEach { it.consume() }
+                        scope.launch {
+                            scrollState.scrollBy((delta.x + delta.y) * 60f)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 @Composable
 private fun HomeSectionTitle(title: String) {
