@@ -45,6 +45,41 @@ fun AccountScreen(
     val currentUser by authViewModel.currentUser.collectAsState()
     val fullName = "${currentUser?.firstName ?: "Prénom"} ${currentUser?.lastName ?: "Nom"}"
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    val isLoading by authViewModel.isLoading.collectAsState()
+    val error by authViewModel.error.collectAsState()
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Supprimer le compte", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Cette action est irréversible. Votre compte et toutes vos données seront définitivement supprimés.")
+                    if (error != null) {
+                        Text(error!!, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteDialog = false
+                        authViewModel.deleteAccount { onLogout() }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandRed),
+                    enabled = !isLoading
+                ) {
+                    Text("Supprimer")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDeleteDialog = false }) {
+                    Text("Annuler")
+                }
+            }
+        )
+    }
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -164,7 +199,7 @@ fun AccountScreen(
                 onClick = { showLogoutDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = 8.dp)
                     .height(50.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
@@ -172,6 +207,19 @@ fun AccountScreen(
                 Icon(Icons.Default.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Déconnexion", fontWeight = FontWeight.Bold)
+            }
+
+            // Delete account button
+            OutlinedButton(
+                onClick = { showDeleteDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
+                    .height(50.dp),
+                shape = RoundedCornerShape(10.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, BrandRed)
+            ) {
+                Text("Supprimer mon compte", color = BrandRed, fontWeight = FontWeight.Medium)
             }
         }
     }

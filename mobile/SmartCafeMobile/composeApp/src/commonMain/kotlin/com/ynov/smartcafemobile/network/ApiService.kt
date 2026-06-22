@@ -43,4 +43,8 @@ object ApiService {
         val response: Map<String, Boolean> = httpClient.get("$BASE_URL/api/auth/check/$userId").body()
         return response["banned"] == true
     }
+
+    suspend fun deleteUser(userId: Long) {
+        httpClient.delete("$BASE_URL/api/admin/users/$userId")
+    }
 }

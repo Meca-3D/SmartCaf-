@@ -245,6 +245,11 @@ const AdminUsers = () => {
                         {user.banned ? '✅ Débannir' : '🚫 Bannir'}
                       </button>
                     )}
+                    {user.role !== 'ADMIN' && (
+                      <button className="btn-danger btn-sm" onClick={() => askDelete(user)}>
+                        🗑️ Supprimer
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

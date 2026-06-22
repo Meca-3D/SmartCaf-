@@ -116,4 +116,21 @@ class AuthViewModel {
         _isBanned.value = false
         _currentUser.value = null
     }
+
+    fun deleteAccount(onSuccess: () -> Unit) {
+        scope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val userId = _currentUser.value?.id ?: return@launch
+                ApiService.deleteUser(userId)
+                logout()
+                onSuccess()
+            } catch (e: Exception) {
+                _error.value = "Impossible de supprimer le compte : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 }
