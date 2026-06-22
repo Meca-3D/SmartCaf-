@@ -1,5 +1,6 @@
 package com.ynov.smartcafemobile.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -27,8 +28,12 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
 import com.ynov.smartcafemobile.ui.components.ProductCard
 import com.ynov.smartcafemobile.ui.theme.Beige
+import org.jetbrains.compose.resources.painterResource
+import smartcafemobile.composeapp.generated.resources.Res
+import smartcafemobile.composeapp.generated.resources.banniere_de_pub
 import com.ynov.smartcafemobile.ui.theme.DarkGreen
 import com.ynov.smartcafemobile.ui.theme.Gold
 import com.ynov.smartcafemobile.viewmodel.CartViewModel
@@ -235,33 +240,17 @@ fun HomeScreen(
                         }
                     }
 
-                    // Section Restaurants
+                    // Bannière publicitaire
                     item {
                         Spacer(Modifier.height(20.dp))
-                        HomeSectionTitle("Restaurants")
-                        Column(
+                        Image(
+                            painter = painterResource(Res.drawable.banniere_de_pub),
+                            contentDescription = "Bannière publicitaire",
+                            contentScale = ContentScale.FillWidth,
                             modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Button(
-                                onClick = { productViewModel.filterByCategory(null) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Gold)
-                            ) {
-                                Text("Recherche", fontWeight = FontWeight.Bold)
-                            }
-                            Button(
-                                onClick = { productViewModel.filterByCategory(null) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Gold)
-                            ) {
-                                Text("Résultats", fontWeight = FontWeight.Bold)
-                            }
-                        }
+                                .fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(4.dp))
                     }
 
                     // Section La Carte
