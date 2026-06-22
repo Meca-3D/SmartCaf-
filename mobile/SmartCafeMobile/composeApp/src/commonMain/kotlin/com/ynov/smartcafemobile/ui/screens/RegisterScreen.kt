@@ -3,17 +3,22 @@ package com.ynov.smartcafemobile.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.ynov.smartcafemobile.ui.theme.DarkGreen
 import com.ynov.smartcafemobile.ui.theme.Gold
@@ -37,6 +42,14 @@ fun RegisterScreen(
     val error by viewModel.error.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.clearError() }
+
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    val isFormValid = firstName.isNotBlank() && lastName.isNotBlank() &&
+            email.isNotBlank() && password.isNotBlank() &&
+            password == confirmPassword && !isLoading
+    fun submit() { if (isFormValid) viewModel.register(firstName, lastName, email, password, onRegisterSuccess) }
 
     Scaffold(
         topBar = {
@@ -68,6 +81,7 @@ fun RegisterScreen(
                 onValueChange = { firstName = it },
                 label = { Text("Prénom") },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -75,6 +89,7 @@ fun RegisterScreen(
                 onValueChange = { lastName = it },
                 label = { Text("Nom") },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -82,7 +97,7 @@ fun RegisterScreen(
                 onValueChange = { email = it },
                 label = { Text("Email") },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -90,8 +105,16 @@ fun RegisterScreen(
                 onValueChange = { password = it },
                 label = { Text("Mot de passe") },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (passwordVisible) "Masquer" else "Afficher"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -99,8 +122,17 @@ fun RegisterScreen(
                 onValueChange = { confirmPassword = it },
                 label = { Text("Confirmer le mot de passe") },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { submit() }),
+                trailingIcon = {
+                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                        Icon(
+                            if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (confirmPasswordVisible) "Masquer" else "Afficher"
+                        )
+                    }
+                },
                 isError = confirmPassword.isNotBlank() && confirmPassword != password,
                 supportingText = {
                     if (confirmPassword.isNotBlank() && confirmPassword != password) {
@@ -114,12 +146,8 @@ fun RegisterScreen(
                 Text(text = error!!, color = MaterialTheme.colorScheme.error)
             }
 
-            val isFormValid = firstName.isNotBlank() && lastName.isNotBlank() &&
-                    email.isNotBlank() && password.isNotBlank() &&
-                    password == confirmPassword && !isLoading
-
             Button(
-                onClick = { viewModel.register(firstName, lastName, email, password, onRegisterSuccess) },
+                onClick = { submit() },
                 enabled = isFormValid,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),

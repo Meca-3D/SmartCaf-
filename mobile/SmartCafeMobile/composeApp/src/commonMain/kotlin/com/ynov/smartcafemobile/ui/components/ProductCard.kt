@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,8 +15,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ynov.smartcafemobile.model.Product
 import com.ynov.smartcafemobile.ui.theme.Beige
@@ -27,6 +30,8 @@ import com.ynov.smartcafemobile.ui.theme.Gold
 fun ProductCard(
     product: Product,
     onAddToCart: () -> Unit,
+    cartQuantity: Int = 0,
+    onRemoveFromCart: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -96,23 +101,53 @@ fun ProductCard(
                         fontWeight = FontWeight.Bold,
                         color = Gold
                     )
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(DarkGreen),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        IconButton(
-                            onClick = onAddToCart,
-                            modifier = Modifier.size(30.dp)
+                    if (cartQuantity > 0 && onRemoveFromCart != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Ajouter au panier",
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
+                            Box(
+                                modifier = Modifier
+                                    .size(26.dp)
+                                    .clip(CircleShape)
+                                    .background(DarkGreen),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                IconButton(onClick = onRemoveFromCart, modifier = Modifier.size(26.dp)) {
+                                    Icon(Icons.Default.Remove, contentDescription = "Retirer", tint = Color.White, modifier = Modifier.size(14.dp))
+                                }
+                            }
+                            Text(
+                                text = "$cartQuantity",
+                                color = BrandText,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.widthIn(min = 20.dp)
                             )
+                            Box(
+                                modifier = Modifier
+                                    .size(26.dp)
+                                    .clip(CircleShape)
+                                    .background(DarkGreen),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                IconButton(onClick = onAddToCart, modifier = Modifier.size(26.dp)) {
+                                    Icon(Icons.Default.Add, contentDescription = "Ajouter", tint = Color.White, modifier = Modifier.size(14.dp))
+                                }
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clip(CircleShape)
+                                .background(DarkGreen),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            IconButton(onClick = onAddToCart, modifier = Modifier.size(30.dp)) {
+                                Icon(Icons.Default.Add, contentDescription = "Ajouter au panier", tint = Color.White, modifier = Modifier.size(16.dp))
+                            }
                         }
                     }
                 }

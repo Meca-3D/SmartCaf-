@@ -89,7 +89,7 @@ fun App() {
                 is AppScreen.Orders, is AppScreen.Offers,
                 is AppScreen.Help, is AppScreen.Legal -> BottomTab.Account
                 is AppScreen.Cart, is AppScreen.OrderType, is AppScreen.QRScan,
-                is AppScreen.Payment, is AppScreen.Confirmation -> BottomTab.Cart
+                is AppScreen.Payment, is AppScreen.PaymentSuccess, is AppScreen.Confirmation -> BottomTab.Cart
                 else -> BottomTab.Home
             }
 
@@ -156,9 +156,18 @@ fun App() {
                                     navStack.clear()
                                     navStack.add(AppScreen.Home)
                                 }
-                                navStack.add(AppScreen.Confirmation(orderId, screen.orderType, screen.tableId))
+                                navStack.add(AppScreen.PaymentSuccess(orderId, screen.orderType, screen.tableId))
                             },
                             onBack = ::goBack
+                        )
+                        is AppScreen.PaymentSuccess -> PaymentSuccessScreen(
+                            orderId = screen.orderId,
+                            orderType = screen.orderType,
+                            tableId = screen.tableId,
+                            onContinue = {
+                                navStack.removeLast()
+                                navStack.add(AppScreen.Confirmation(screen.orderId, screen.orderType, screen.tableId))
+                            }
                         )
                         is AppScreen.Confirmation -> ConfirmationScreen(
                             orderId = screen.orderId,
@@ -224,8 +233,8 @@ private fun SmartCafeBottomBar(
                 BadgedBox(
                     badge = {
                         if (tab == BottomTab.Cart && cartItemCount > 0) {
-                            Badge(containerColor = Color.White) {
-                                Text("$cartItemCount", color = DarkGreen)
+                            Badge(containerColor = Gold) {
+                                Text("$cartItemCount", color = Color.White)
                             }
                         }
                     }

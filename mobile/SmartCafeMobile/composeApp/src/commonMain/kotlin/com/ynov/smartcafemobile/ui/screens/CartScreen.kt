@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ynov.smartcafemobile.ui.theme.BrandRed
 import coil3.compose.AsyncImage
 import com.ynov.smartcafemobile.model.CartItem
 import com.ynov.smartcafemobile.ui.theme.Beige
@@ -177,15 +179,22 @@ private fun CartItemRow(
             }
 
             // Quantity controls
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = BrandRed, modifier = Modifier.size(18.dp))
+                }
                 IconButton(onClick = onDecrease, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.Delete, contentDescription = "Diminuer", modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Remove, contentDescription = "Diminuer", modifier = Modifier.size(18.dp))
                 }
                 Text(
                     "${cartItem.quantity}",
-                    modifier = Modifier.widthIn(min = 24.dp),
+                    modifier = Modifier.width(24.dp),
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
                 IconButton(onClick = onIncrease, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Default.Add, contentDescription = "Augmenter", modifier = Modifier.size(18.dp))

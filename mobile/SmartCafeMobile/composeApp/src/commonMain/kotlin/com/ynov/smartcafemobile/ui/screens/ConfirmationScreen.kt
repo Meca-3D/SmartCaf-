@@ -58,28 +58,34 @@ fun ConfirmationScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 if (orderType == "ON_SITE") {
-                    Text("🪑", style = MaterialTheme.typography.displaySmall)
+                    Text("🪑", style = MaterialTheme.typography.displaySmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                     Text(
                         "Sur place — Table n°${tableId ?: "?"}",
                         fontWeight = FontWeight.Bold,
-                        color = Gold
+                        color = Gold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Text(
                         "Votre commande sera apportée à votre table.",
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 } else {
-                    Text("🥡", style = MaterialTheme.typography.displaySmall)
+                    Text("🥡", style = MaterialTheme.typography.displaySmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                     Text(
                         "Click & Collect",
                         fontWeight = FontWeight.Bold,
-                        color = Gold
+                        color = Gold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Text(
                         "Votre commande est en préparation.\nRécupérez-la au comptoir.",
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }

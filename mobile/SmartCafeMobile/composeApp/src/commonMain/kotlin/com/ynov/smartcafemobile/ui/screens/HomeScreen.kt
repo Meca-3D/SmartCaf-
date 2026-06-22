@@ -3,17 +3,21 @@ package com.ynov.smartcafemobile.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -51,6 +55,7 @@ fun HomeScreen(
     val error by productViewModel.error.collectAsState()
     val selectedCategory by productViewModel.selectedCategory.collectAsState()
     val cartItemCount by cartViewModel.totalItems.collectAsState()
+    val cartItems by cartViewModel.items.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val filterScrollState = rememberScrollState()
     val nouveautesScrollState = rememberScrollState()
@@ -222,18 +227,29 @@ fun HomeScreen(
                         }
                     } else {
                         item {
-                            Row(
-                                modifier = Modifier
-                                    .mouseWheelHorizontalScroll(nouveautesScrollState, coroutineScope)
-                                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                nouveautes.forEach { product ->
-                                    Box(modifier = Modifier.width(240.dp)) {
-                                        ProductCard(
-                                            product = product,
-                                            onAddToCart = { cartViewModel.addItem(product) }
-                                        )
+                            val blockVerticalScroll = remember {
+                                object : NestedScrollConnection {
+                                    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
+                                        Offset(0f, available.y)
+                                }
+                            }
+                            Box(Modifier.nestedScroll(blockVerticalScroll)) {
+                                Row(
+                                    modifier = Modifier
+                                        .mouseWheelHorizontalScroll(nouveautesScrollState, coroutineScope)
+                                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    nouveautes.forEach { product ->
+                                        val qty = cartItems.find { it.product.id == product.id }?.quantity ?: 0
+                                        Box(modifier = Modifier.width(240.dp)) {
+                                            ProductCard(
+                                                product = product,
+                                                onAddToCart = { cartViewModel.addItem(product) },
+                                                cartQuantity = qty,
+                                                onRemoveFromCart = { cartViewModel.decreaseItem(product.id) }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -261,9 +277,7 @@ fun HomeScreen(
                     if (carteProducts.isEmpty() && !isLoading) {
                         item {
                             Row(
-                                modifier = Modifier
-                                    .mouseWheelHorizontalScroll(carteScrollState, coroutineScope)
-                                    .padding(horizontal = 16.dp),
+                                modifier = Modifier.padding(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 repeat(3) {
@@ -278,18 +292,29 @@ fun HomeScreen(
                         }
                     } else {
                         item {
-                            Row(
-                                modifier = Modifier
-                                    .mouseWheelHorizontalScroll(carteScrollState, coroutineScope)
-                                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                carteProducts.forEach { product ->
-                                    Box(modifier = Modifier.width(180.dp)) {
-                                        ProductCard(
-                                            product = product,
-                                            onAddToCart = { cartViewModel.addItem(product) }
-                                        )
+                            val blockVerticalScroll = remember {
+                                object : NestedScrollConnection {
+                                    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
+                                        Offset(0f, available.y)
+                                }
+                            }
+                            Box(Modifier.nestedScroll(blockVerticalScroll)) {
+                                Row(
+                                    modifier = Modifier
+                                        .mouseWheelHorizontalScroll(carteScrollState, coroutineScope)
+                                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    carteProducts.forEach { product ->
+                                        val qty = cartItems.find { it.product.id == product.id }?.quantity ?: 0
+                                        Box(modifier = Modifier.width(180.dp)) {
+                                            ProductCard(
+                                                product = product,
+                                                onAddToCart = { cartViewModel.addItem(product) },
+                                                cartQuantity = qty,
+                                                onRemoveFromCart = { cartViewModel.decreaseItem(product.id) }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -301,6 +326,7 @@ fun HomeScreen(
     }
 }
 
+
 private fun Modifier.mouseWheelHorizontalScroll(
     scrollState: ScrollState,
     scope: CoroutineScope
@@ -311,9 +337,9 @@ private fun Modifier.mouseWheelHorizontalScroll(
             while (true) {
                 val event = awaitPointerEvent()
                 if (event.type == PointerEventType.Scroll) {
+                    event.changes.forEach { it.consume() }
                     val delta = event.changes.firstOrNull()?.scrollDelta
                     if (delta != null) {
-                        event.changes.forEach { it.consume() }
                         scope.launch {
                             scrollState.scrollBy((delta.x + delta.y) * 60f)
                         }
