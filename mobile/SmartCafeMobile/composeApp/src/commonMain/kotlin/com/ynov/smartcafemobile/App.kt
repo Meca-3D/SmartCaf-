@@ -53,9 +53,32 @@ fun App() {
 
         val currentUser by authViewModel.currentUser.collectAsState()
         val cartItemCount by cartViewModel.totalItems.collectAsState()
+        val isBanned by authViewModel.isBanned.collectAsState()
 
         fun navigate(screen: AppScreen) = navStack.add(screen)
         fun goBack() { if (navStack.size > 1) navStack.removeLast() }
+
+        // Redirection automatique si banni
+        LaunchedEffect(isBanned) {
+            if (isBanned) {
+                cartViewModel.clearCart()
+                navStack.clear()
+                navStack.add(AppScreen.Login)
+            }
+        }
+
+        if (isBanned) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { authViewModel.clearBanned() },
+                title = { androidx.compose.material3.Text("Compte suspendu", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) },
+                text = { androidx.compose.material3.Text("Votre compte a été banni. Veuillez contacter l'administrateur.") },
+                confirmButton = {
+                    androidx.compose.material3.Button(onClick = { authViewModel.clearBanned() }) {
+                        androidx.compose.material3.Text("OK")
+                    }
+                }
+            )
+        }
 
         val currentScreen = navStack.last()
 

@@ -78,4 +78,14 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "Mot de passe modifié avec succès"));
-    }}
+    }
+
+    @GetMapping("/check/{userId}")
+    public ResponseEntity<?> checkStatus(@PathVariable Long userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("banned", true));
+        }
+        return ResponseEntity.ok(Map.of("banned", Boolean.TRUE.equals(userOpt.get().getBanned())));
+    }
+}

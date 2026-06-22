@@ -38,4 +38,9 @@ object ApiService {
 
     suspend fun getOrder(id: Long): Order =
         httpClient.get("$BASE_URL/api/orders/$id").body()
+
+    suspend fun checkBanStatus(userId: Long): Boolean {
+        val response: Map<String, Boolean> = httpClient.get("$BASE_URL/api/auth/check/$userId").body()
+        return response["banned"] == true
+    }
 }
