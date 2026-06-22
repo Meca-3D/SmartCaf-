@@ -7,6 +7,7 @@ import com.ynov.smartcafemobile.network.ApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +24,26 @@ class OrderViewModel {
 
     private val _lastOrder = MutableStateFlow<Order?>(null)
     val lastOrder: StateFlow<Order?> = _lastOrder.asStateFlow()
+
+    private val _orders = MutableStateFlow<List<Order>>(emptyList())
+    val orders: StateFlow<List<Order>> = _orders.asStateFlow()
+
+    init {
+        scope.launch {
+            while (true) {
+                delay(5000)
+                val toUpdate = _orders.value.filter {
+                    it.status == "PENDING" || it.status == "IN_PROGRESS"
+                }
+                for (order in toUpdate) {
+                    try {
+                        val updated = ApiService.getOrder(order.id)
+                        _orders.value = _orders.value.map { if (it.id == updated.id) updated else it }
+                    } catch (_: Exception) {}
+                }
+            }
+        }
+    }
 
     fun placeOrder(
         customerName: String,
@@ -43,6 +64,7 @@ class OrderViewModel {
                 )
                 val order = ApiService.createOrder(request)
                 _lastOrder.value = order
+                _orders.value = _orders.value + order
                 onSuccess(order.id)
             } catch (e: Exception) {
                 _error.value = "Impossible de passer la commande : ${e.message}"

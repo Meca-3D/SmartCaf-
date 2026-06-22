@@ -260,8 +260,8 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
         String role = body.get("role");
-        if (role == null || (!role.equals("CLIENT") && !role.equals("ADMIN"))) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Rôle invalide (CLIENT ou ADMIN)"));
+        if (role == null || (!role.equals("CLIENT") && !role.equals("ADMIN") && !role.equals("EMPLOYER"))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Rôle invalide (CLIENT, EMPLOYER ou ADMIN)"));
         }
         return userRepository.findById(id)
                 .map(user -> {
@@ -269,6 +269,32 @@ public class AdminController {
                     User saved = userRepository.save(user);
                     saved.setPassword(null);
                     return ResponseEntity.ok(saved);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/users/{id}/orders")
+    public ResponseEntity<List<Order>> getUserOrders(@PathVariable Long id) {
+        if (!DatabaseConnectionChecker.databaseConnected) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        return ResponseEntity.ok(orderRepository.findByUserIdOrderByCreatedAtDesc(id));
+    }
+
+    @PutMapping("/users/{id}/ban")
+    public ResponseEntity<?> toggleBan(@PathVariable Long id) {
+        if (!DatabaseConnectionChecker.databaseConnected) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        return userRepository.findById(id)
+                .map(user -> {
+                    if ("ADMIN".equals(user.getRole())) {
+                        return (ResponseEntity<?>) ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(Map.of("message", "Impossible de bannir un administrateur"));
+                    }
+                    user.setBanned(!Boolean.TRUE.equals(user.getBanned()));
+                    userRepository.save(user);
+                    return (ResponseEntity<?>) ResponseEntity.ok(Map.of("banned", user.getBanned()));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAdminUsers, updateUserRole, deleteAdminUser } from '../../services/api';
+import { getAdminUsers, updateUserRole, deleteAdminUser, banAdminUser, getAdminUserOrders } from '../../services/api';
 import './AdminUsers.css';
 
 const CONFIRM_WORD = 'SUPPRIMER';
@@ -17,9 +17,18 @@ const AdminUsers = () => {
   const [deleteError, setDeleteError] = useState('');
 
   // Role change
-  const [roleTarget, setRoleTarget] = useState(null); // { id, currentRole }
+  const [roleTarget, setRoleTarget] = useState(null);
   const [newRole, setNewRole] = useState('');
   const [roleError, setRoleError] = useState('');
+
+  // Ban
+  const [banTarget, setBanTarget] = useState(null);
+  const [banError, setBanError] = useState('');
+
+  // Profile
+  const [profileTarget, setProfileTarget] = useState(null);
+  const [profileOrders, setProfileOrders] = useState([]);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -71,6 +80,57 @@ const AdminUsers = () => {
       load();
     } catch (e) {
       setRoleError(e?.response?.data?.message || 'Erreur lors du changement de rôle.');
+    }
+  };
+
+  // ===== Ban =====
+  const openBanModal = (user) => {
+    setBanTarget(user);
+    setBanError('');
+  };
+
+  const closeBanModal = () => {
+    setBanTarget(null);
+    setBanError('');
+  };
+
+  const confirmBan = async () => {
+    try {
+      await banAdminUser(banTarget.id);
+      closeBanModal();
+      load();
+    } catch (e) {
+      setBanError(e?.response?.data?.message || 'Erreur lors de l\'opération.');
+    }
+  };
+
+  // ===== Profile =====
+  const openProfile = async (user) => {
+    setProfileTarget(user);
+    setProfileOrders([]);
+    setProfileLoading(true);
+    try {
+      const orders = await getAdminUserOrders(user.id);
+      setProfileOrders(orders);
+    } catch {
+      setProfileOrders([]);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const closeProfile = () => {
+    setProfileTarget(null);
+    setProfileOrders([]);
+  };
+
+  const statusLabel = (s) => {
+    switch (s) {
+      case 'PENDING': return { text: 'En attente', cls: 'status-pending' };
+      case 'IN_PROGRESS': return { text: 'En cours', cls: 'status-in-progress' };
+      case 'COMPLETED': return { text: 'Terminée', cls: 'status-completed' };
+      case 'CANCELLED': return { text: 'Annulée', cls: 'status-cancelled' };
+      default: return { text: s, cls: '' };
     }
   };
 
@@ -159,7 +219,10 @@ const AdminUsers = () => {
                 <td>
                   <div className="user-name">{user.firstName} {user.lastName}</div>
                 </td>
-                <td className="user-email">{user.email}</td>
+                <td className="user-email">
+                  {user.email}
+                  {user.banned && <span className="badge badge-banned" style={{ marginLeft: 6 }}>🚫 Banni</span>}
+                </td>
                 <td>
                   <span className={`badge ${user.role === 'ADMIN' ? 'badge-admin' : user.role === 'EMPLOYER' ? 'badge-info' : 'badge-client'}`}>
                     {user.role === 'ADMIN' ? '🔑 Admin' : user.role === 'EMPLOYER' ? '🧑‍💼 Employé' : '👤 Client'}
@@ -168,12 +231,18 @@ const AdminUsers = () => {
                 <td>{formatDate(user.createdAt)}</td>
                 <td>
                   <div className="table-actions">
-                    <button className="btn-edit" onClick={() => openRoleModal(user)}>
-                      Changer le rôle
+                    <button className="btn-secondary btn-sm" onClick={() => openProfile(user)}>
+                      Voir profil
                     </button>
-                    {user.role !== 'ADMIN' && (
-                      <button className="btn-danger" onClick={() => askDelete(user)}>
-                        Supprimer
+                    <button className="btn-edit" onClick={() => openRoleModal(user)}>
+                      Rôle
+                    </button>
+                    {user.role === 'CLIENT' && (
+                      <button
+                        className={user.banned ? 'btn-unban' : 'btn-ban'}
+                        onClick={() => openBanModal(user)}
+                      >
+                        {user.banned ? '✅ Débannir' : '🚫 Bannir'}
                       </button>
                     )}
                   </div>
@@ -247,6 +316,86 @@ const AdminUsers = () => {
                 Supprimer le compte
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Ban confirm modal */}
+      {banTarget && (
+        <div className="modal-overlay" onClick={closeBanModal}>
+          <div className="modal modal--small" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">{banTarget.banned ? '✅ Débannir le compte' : '🚫 Bannir le compte'}</h2>
+              <button className="modal-close" onClick={closeBanModal}>✕</button>
+            </div>
+            <p className="delete-warning">
+              {banTarget.banned
+                ? <>Le compte de <strong>{banTarget.firstName} {banTarget.lastName}</strong> sera débanni. Il pourra se reconnecter.</>
+                : <>Le compte de <strong>{banTarget.firstName} {banTarget.lastName}</strong> ({banTarget.email}) sera banni. Il ne pourra plus se connecter.</>
+              }
+            </p>
+            {banError && <p className="delete-error">{banError}</p>}
+            <div className="form-actions">
+              <button className="btn-secondary" onClick={closeBanModal}>Annuler</button>
+              <button className={banTarget.banned ? 'btn-primary' : 'btn-ban'} onClick={confirmBan}>
+                {banTarget.banned ? 'Débannir' : 'Bannir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile modal */}
+      {profileTarget && (
+        <div className="modal-overlay" onClick={closeProfile}>
+          <div className="modal modal--profile" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">👤 Profil — {profileTarget.firstName} {profileTarget.lastName}</h2>
+              <button className="modal-close" onClick={closeProfile}>✕</button>
+            </div>
+
+            <div className="profile-info-grid">
+              <div className="profile-info-item">
+                <span className="profile-info-label">Email</span>
+                <span className="profile-info-value">{profileTarget.email}</span>
+              </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Rôle</span>
+                <span className={`badge ${profileTarget.role === 'ADMIN' ? 'badge-admin' : profileTarget.role === 'EMPLOYER' ? 'badge-info' : 'badge-client'}`}>
+                  {profileTarget.role === 'ADMIN' ? '🔑 Admin' : profileTarget.role === 'EMPLOYER' ? '🧑‍💼 Employé' : '👤 Client'}
+                </span>
+              </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Membre depuis</span>
+                <span className="profile-info-value">{formatDate(profileTarget.createdAt)}</span>
+              </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Statut</span>
+                {profileTarget.banned
+                  ? <span className="badge badge-banned">🚫 Banni</span>
+                  : <span className="badge badge-client">✅ Actif</span>}
+              </div>
+            </div>
+
+            <h3 className="profile-orders-title">Historique des commandes</h3>
+            {profileLoading ? (
+              <p className="profile-orders-empty">Chargement...</p>
+            ) : profileOrders.length === 0 ? (
+              <p className="profile-orders-empty">Aucune commande pour ce client.</p>
+            ) : (
+              <div className="profile-orders-list">
+                {profileOrders.map((order) => {
+                  const s = statusLabel(order.status);
+                  return (
+                    <div key={order.id} className="profile-order-row">
+                      <span className="profile-order-id">#{order.id}</span>
+                      <span className="profile-order-date">{formatDate(order.createdAt)}</span>
+                      <span className={`badge order-status-badge ${s.cls}`}>{s.text}</span>
+                      <span className="profile-order-total">{Number(order.totalPrice ?? 0).toFixed(2)} €</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

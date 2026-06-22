@@ -19,6 +19,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByStatusAndCreatedAtBefore(String status, LocalDateTime cutoff);
 
+    List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
+
     long countByStatus(String status);
 
     @Query(value = "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE status = 'COMPLETED'", nativeQuery = true)

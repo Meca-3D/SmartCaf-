@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getAdminOrders, updateOrderStatus } from '../../services/api';
 import './AdminOrders.css';
 
@@ -34,12 +34,6 @@ const AdminOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
 
-  // Auto-progression refs
-  const autoTrackedRef = useRef(new Set());
-  const finalCountRef = useRef(0);
-  const mountedRef = useRef(true);
-  useEffect(() => () => { mountedRef.current = false; }, []);
-
   // Silent refresh (no loading spinner)
   const refresh = async () => {
     try {
@@ -54,46 +48,7 @@ const AdminOrders = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-progression: PENDING→IN_PROGRESS (10s) → COMPLETED/CANCELLED (+20s)
-  // Every 3rd order reaching the final step → CANCELLED instead of COMPLETED
-  useEffect(() => {
-    orders.forEach((order) => {
-      if (autoTrackedRef.current.has(order.id)) return;
-      if (order.status !== 'PENDING' && order.status !== 'IN_PROGRESS') return;
-
-      autoTrackedRef.current.add(order.id);
-
-      const goToFinal = (id) => {
-        if (!mountedRef.current) return;
-        finalCountRef.current += 1;
-        const nextStatus = finalCountRef.current % 3 === 0 ? 'CANCELLED' : 'COMPLETED';
-        updateOrderStatus(id, nextStatus)
-          .then(() => {
-            if (!mountedRef.current) return;
-            setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status: nextStatus } : o));
-          })
-          .catch(() => {});
-      };
-
-      if (order.status === 'PENDING') {
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          updateOrderStatus(order.id, 'IN_PROGRESS')
-            .then(() => {
-              if (!mountedRef.current) return;
-              setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, status: 'IN_PROGRESS' } : o));
-              setTimeout(() => goToFinal(order.id), 20000);
-            })
-            .catch(() => {});
-        }, 10000);
-      } else {
-        // Already IN_PROGRESS: schedule final step
-        setTimeout(() => goToFinal(order.id), 20000);
-      }
-    });
-  }, [orders]);
-
-  // Keep detail modal in sync with auto-progressions
+  // Keep detail modal in sync with server updates
   useEffect(() => {
     if (selectedOrder) {
       const updated = orders.find((o) => o.id === selectedOrder.id);

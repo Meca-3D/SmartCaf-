@@ -40,6 +40,9 @@ public class User {
     @Column(nullable = false)
     private String role = "CLIENT"; // CLIENT, EMPLOYER, ADMIN
 
+    @Column(nullable = false)
+    private Boolean banned = false;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

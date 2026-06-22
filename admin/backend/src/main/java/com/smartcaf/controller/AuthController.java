@@ -44,6 +44,9 @@ public class AuthController {
         if (!passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
             return ResponseEntity.status(401).body(Map.of("message", "Email ou mot de passe incorrect"));
         }
+        if (Boolean.TRUE.equals(user.getBanned())) {
+            return ResponseEntity.status(403).body(Map.of("message", "Ce compte a été banni. Contactez l'administrateur."));
+        }
 
         // TODO: Générer un JWT pour l'utilisateur
         // (Pour l’instant on renvoie l’utilisateur + un message, en JSON)

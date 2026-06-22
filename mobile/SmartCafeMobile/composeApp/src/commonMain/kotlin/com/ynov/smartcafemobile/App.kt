@@ -199,7 +199,10 @@ fun App() {
                             authViewModel = authViewModel,
                             onBack = ::goBack
                         )
-                        is AppScreen.Orders -> OrdersScreen(onBack = ::goBack)
+                        is AppScreen.Orders -> OrdersScreen(
+                            orderViewModel = orderViewModel,
+                            onBack = ::goBack
+                        )
                         is AppScreen.Offers -> OffersScreen(onBack = ::goBack)
                         is AppScreen.Help -> HelpScreen(onBack = ::goBack)
                         is AppScreen.Legal -> LegalScreen(onBack = ::goBack)

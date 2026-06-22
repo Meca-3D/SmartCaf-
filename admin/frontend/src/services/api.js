@@ -124,6 +124,16 @@ export const deleteAdminUser = async (id) => {
   await api.delete(`/admin/users/${id}`);
 };
 
+export const banAdminUser = async (id) => {
+  const response = await api.put(`/admin/users/${id}/ban`);
+  return response.data;
+};
+
+export const getAdminUserOrders = async (userId) => {
+  const response = await api.get(`/admin/users/${userId}/orders`);
+  return response.data;
+};
+
 // ===== ADMIN - Change password =====
 export const changeAdminPassword = async (email, currentPassword, newPassword) => {
   const response = await api.put('/auth/change-password', { email, currentPassword, newPassword });
